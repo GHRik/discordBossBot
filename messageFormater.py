@@ -11,7 +11,7 @@ def format_msg(content, user_id):
         amount_of_members = BOSSES_MAP[content[0].lower()]
         context += mention
         context += " "+content[1]
-        context += " by "+make_mention(user_id,Mention.USER)
+        context += " by "+make_mention(user_id, Mention.USER)
 
         context += "\n"
         for i in range(amount_of_members):
@@ -52,7 +52,7 @@ def which_boss(content):
 
 
 def check_user_is_on_list(content, user_id):
-    split = split_content(content,"\n")
+    split = split_content(content, "\n")
     split = split[1:]
     content = ""
     for i in split:
@@ -115,7 +115,7 @@ def is_special_command(command):
     return False
 
 
-def call_special( command ):
+def call_special(command):
     split = split_content(command, '\\s+')
     result = ""
     command = split[0]
@@ -126,5 +126,3 @@ def call_special( command ):
     if command == AVAILABLE_COMMAND[1].lower():
         result += print_boss_list(BOSSES_MAP)
     return result
-
-

@@ -36,5 +36,3 @@ BOSSES_MAP = {
     "bad":    "Not found :("
 
 }
-
-

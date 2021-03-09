@@ -4,7 +4,8 @@ import discord
 
 from globals import *
 from messageFormater import delete_command_prefix, format_msg, \
-    check_user_is_on_list, which_boss, get_new_content, split_content, delete_user_from_list, is_special_command, call_special
+    check_user_is_on_list, which_boss, get_new_content, split_content,\
+    delete_user_from_list, is_special_command, call_special
 from mention import make_mention, Mention
 from emojiChecker import emoji_counter, is_in_emoji_list
 from InfoMessages import error_message, user_exist_message, bad_format_message
@@ -51,7 +52,7 @@ class MyClient(discord.Client):
                     sleep(0.2)
                 elif is_validate(command):
                     split_msg = split_content(command, '\\s+')
-                        # Send to channel
+                    # Send to channel
                     context = format_msg(split_msg, message.author.id)
                     if context.startswith(NOT_FOUND_PREFIX):
                         channel = self.get_channel(CHANNEL_BOT_ANSWER)

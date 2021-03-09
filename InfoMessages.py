@@ -3,6 +3,7 @@ from datetime import datetime
 from mention import Mention, make_mention
 import re
 
+
 def error_message(reaction, user):
     return ("Przekroczona liczba\n" +
             "Na Bossa: " + split_content(reaction.message.content, " ")[0]
@@ -22,7 +23,7 @@ def bad_format_message(user_id, content):
                "```Format should be: !COMMAND DD:MM:YYYY-HH:MM > "+str(today)+"```\n```Your format: " + content+"```")
 
 
-def print_help( command_dict ):
+def print_help(command_dict):
     output = "Bot created by RiK\n\n"
     output += "This is helper bot to create raid event on bosses.\n"
     output += "If you want to create raid call:"
@@ -55,6 +56,7 @@ def split_content(content, delimiter_regex):
     while "" in split:
         del split[split.index("")]
     return split
+
 
 def create_today_date():
     today = datetime.today().date()
