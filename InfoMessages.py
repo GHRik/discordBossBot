@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from globals import FORMAT_DATATIME
 from mention import Mention, make_mention
 import re
 
@@ -64,6 +65,6 @@ def create_today_date():
     today_hours = str(today_hours.hour) + ":" + str(today_hours.minute)
     today_date = str(today.day) + "." + str(today.month) + "." + str(today.year)
     today_date = today_date + "-" + today_hours
-    format_date = "%d.%m.%Y-%H:%M"
+    format_date = FORMAT_DATATIME
     today = datetime.strptime(today_date, format_date)
     return today

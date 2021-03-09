@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 from time import sleep
 import discord
 
@@ -8,13 +9,30 @@ from messageFormater import delete_command_prefix, format_msg, \
     delete_user_from_list, is_special_command, call_special
 from mention import make_mention, Mention
 from emojiChecker import emoji_counter, is_in_emoji_list
-from InfoMessages import error_message, user_exist_message, bad_format_message
+from InfoMessages import error_message, user_exist_message, bad_format_message, create_today_date
 from messageValidator import is_validate
+from messageHolding import MESSAGES, MESSAGES_TO_CALL, MESSAGES_WAS_CALLED, MESSAGES_TO_DELETE
 
 
 async def add_emoji_to_msg(message_id):
     for key in EMOJI_MAP:
         await message_id.add_reaction(str(EMOJI_MAP[key]))
+
+
+async def minion():
+    actual_time = create_today_date()
+    for mes in MESSAGES:
+        split = split_content(mes.content, "\n")
+        date = split_content(split[0], "\\s+")
+        date = date[1]
+        format_date = FORMAT_DATATIME
+        msg_date = datetime.strptime(date, format_date)
+        sec_to_min = 60.0
+        minutes_diff = (msg_date - actual_time).total_seconds() / sec_to_min
+        if minutes_diff < INTERVAL_TIME:
+            MESSAGES_TO_CALL.append(mes)
+        if minutes_diff < 0:
+            MESSAGES_TO_DELETE.append(mes)
 
 
 class MyClient(discord.Client):
@@ -25,6 +43,56 @@ class MyClient(discord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.bg_task = self.loop.create_task(self.spam_emoji_prevent())
+        self.bg_task = self.loop.create_task(self.call_after_raid())
+        self.bg_task = self.loop.create_task(self.call_members())
+
+    async def trasher(self):
+        await self.wait_until_ready()
+        interval = 90
+        while not self.is_closed():
+            for mes in MESSAGES_TO_DELETE:
+                MESSAGES_TO_DELETE.remove(mes)
+                message = await client.get_channel(CHANNEL_ID).fetch_message(mes.id)
+                await message.remove()
+                MESSAGES_WAS_CALLED.clear()
+        await asyncio.sleep(interval)
+
+    async def call_members(self):
+        await self.wait_until_ready()
+        interval = 60
+        while not self.is_closed():
+            for mes in MESSAGES_TO_CALL:
+                if mes in MESSAGES_WAS_CALLED:
+                    pass
+                else:
+                    MESSAGES_WAS_CALLED.append(mes)
+                    MESSAGES_TO_CALL.remove(mes)
+                    message = await client.get_channel(CHANNEL_ID).fetch_message(mes.id)
+                    mes = message
+                    split = split_content(mes.content, "\n")
+                    list_of_members = split[1:]
+                    temp = ""
+                    for elem in list_of_members:
+                        temp += elem+"\n"
+                    list_of_members = temp
+                    date = split_content(split[0], "\\s+")
+                    boss = date[0]
+                    author = date[3]
+                    date = date[1]
+                    content = "Guys!\n"+str(list_of_members)+"\n"+str(INTERVAL_TIME)+"min to raid on:\n"+boss
+                    content += "\nevent on: "+str(date)+" created by: "+author
+                    content += "\n\n!!! Good luck !!!\n\n"
+                    channel = self.get_channel(CHANNEL_BOT_CALLER)
+                    await channel.send(content)
+                    pass
+            await asyncio.sleep(interval)
+
+    async def call_after_raid(self):
+        await self.wait_until_ready()
+        checking_timer = 30
+        while not self.is_closed():
+            await minion()
+            await asyncio.sleep(checking_timer)
 
     async def spam_emoji_prevent(self):
         await self.wait_until_ready()
@@ -63,6 +131,7 @@ class MyClient(discord.Client):
                         message_id = await channel.send(context)
                         sleep(0.2)
                         await add_emoji_to_msg(message_id)
+                        MESSAGES.append(message_id)
                 else:
                     channel = self.get_channel(CHANNEL_BOT_ANSWER)
                     await channel.send(bad_format_message(message.author.id, message.content))

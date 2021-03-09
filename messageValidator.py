@@ -1,10 +1,10 @@
 from datetime import datetime
 from messageFormater import split_content
-from globals import COMMAND_LENGTH
+from globals import COMMAND_LENGTH, FORMAT_TIME, FORMAT_DATE, FORMAT_DATATIME
 
 
 def is_valid_date(date):
-    format_date = "%d.%m.%Y"
+    format_date = FORMAT_DATE
 
     try:
         datetime.strptime(date, format_date)
@@ -14,7 +14,7 @@ def is_valid_date(date):
 
 
 def is_valid_time(time):
-    time_format = "%H:%M"
+    time_format = FORMAT_TIME
     try:
         datetime.strptime(time, time_format)
         return True
@@ -27,11 +27,11 @@ def is_later_than_today(date, time):
     today_hours = datetime.today().time()
     today_date = str(today.day)+"."+str(today.month)+"."+str(today.year)
     today_hours = str(today_hours.hour)+":"+str(today_hours.minute)
-    today_date = today_date+" "+today_hours
+    today_date = today_date+"-"+today_hours
 
-    my_date = date+" "+time
+    my_date = date+"-"+time
 
-    format_date = "%d.%m.%Y %H:%M"
+    format_date = FORMAT_DATATIME
     today = datetime.strptime(today_date, format_date)
     my_day = datetime.strptime(my_date, format_date)
 
