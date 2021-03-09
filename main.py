@@ -11,7 +11,7 @@ from mention import make_mention, Mention
 from emojiChecker import emoji_counter, is_in_emoji_list
 from InfoMessages import error_message, user_exist_message, bad_format_message, create_today_date
 from messageValidator import is_validate
-from messageHolding import MESSAGES, MESSAGES_TO_CALL, MESSAGES_WAS_CALLED, MESSAGES_TO_DELETE
+from messageHolding import MESSAGES, MESSAGES_TO_CALL, MESSAGES_WAS_CALLED
 
 
 async def add_emoji_to_msg(message_id):
@@ -31,8 +31,6 @@ async def minion():
         minutes_diff = (msg_date - actual_time).total_seconds() / sec_to_min
         if minutes_diff < INTERVAL_TIME:
             MESSAGES_TO_CALL.append(mes)
-        if minutes_diff < 0:
-            MESSAGES_TO_DELETE.append(mes)
 
 
 class MyClient(discord.Client):
@@ -46,19 +44,7 @@ class MyClient(discord.Client):
         self.bg_task = self.loop.create_task(self.call_after_raid())
         self.bg_task = self.loop.create_task(self.call_members())
 
-    async def trasher(self):
-        await self.wait_until_ready()
-        interval = 90
-        while not self.is_closed():
-            for mes in MESSAGES_TO_DELETE:
-                MESSAGES_TO_DELETE.remove(mes)
-                message = await client.get_channel(CHANNEL_ID).fetch_message(mes.id)
-                await message.remove()
-                MESSAGES_WAS_CALLED.clear()
-        await asyncio.sleep(interval)
-
     async def call_members(self):
-        await self.wait_until_ready()
         interval = 60
         while not self.is_closed():
             for mes in MESSAGES_TO_CALL:
@@ -88,14 +74,12 @@ class MyClient(discord.Client):
             await asyncio.sleep(interval)
 
     async def call_after_raid(self):
-        await self.wait_until_ready()
         checking_timer = 30
         while not self.is_closed():
             await minion()
             await asyncio.sleep(checking_timer)
 
     async def spam_emoji_prevent(self):
-        await self.wait_until_ready()
         while not self.is_closed():
             self.BLOCK_ADDING = False
             await asyncio.sleep(JOIN_BOSS_TIMEOUT)
@@ -104,7 +88,6 @@ class MyClient(discord.Client):
         print('Logged on as', self.user)
 
     async def on_message(self, message):
-        await self.wait_until_ready()
         # don't respond to ourselves
         if message.author == self.user:
             return
