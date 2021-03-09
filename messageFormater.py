@@ -1,15 +1,17 @@
 import re
-from globals import START_COMMAND_PREFIX, BOSSES_MAP, MENTION_MAP, NOT_FOUND_PREFIX
+from globals import START_COMMAND_PREFIX, BOSSES_MAP, MENTION_MAP, NOT_FOUND_PREFIX, AVAILABLE_COMMAND
 from mention import make_mention, decode_mention, Mention
+from InfoMessages import print_help, print_boss_list
 
 
-def format_msg(content):
+def format_msg(content, user_id):
     context = ""
     if content[0].lower() in MENTION_MAP and content[0].lower() in BOSSES_MAP:
         mention = make_mention(MENTION_MAP[content[0].lower()], Mention.ROLE)
         amount_of_members = BOSSES_MAP[content[0].lower()]
         context += mention
         context += " "+content[1]
+        context += " by "+make_mention(user_id,Mention.USER)
 
         context += "\n"
         for i in range(amount_of_members):
@@ -50,6 +52,11 @@ def which_boss(content):
 
 
 def check_user_is_on_list(content, user_id):
+    split = split_content(content,"\n")
+    split = split[1:]
+    content = ""
+    for i in split:
+        content += i
     return content.find(str(user_id))
 
 
@@ -95,3 +102,29 @@ def create_number_of_members(members):
         amount += int(elem)
 
     return amount
+
+
+def is_special_command(command):
+    split = split_content(command, '\\s+')
+    if len(split) == 1:
+        command = split[0]
+        command = command.lower()
+        for com in AVAILABLE_COMMAND:
+            if command == com.lower():
+                return True
+    return False
+
+
+def call_special( command ):
+    split = split_content(command, '\\s+')
+    result = ""
+    command = split[0]
+    command = command.lower()
+    if command == AVAILABLE_COMMAND[0].lower():
+        result += print_help(AVAILABLE_COMMAND)
+        result += print_boss_list(BOSSES_MAP)
+    if command == AVAILABLE_COMMAND[1].lower():
+        result += print_boss_list(BOSSES_MAP)
+    return result
+
+

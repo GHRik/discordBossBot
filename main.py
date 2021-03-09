@@ -3,11 +3,12 @@ from time import sleep
 import discord
 
 from globals import *
-from messageFormater import delete_command_prefix, split_content, format_msg, \
-    check_user_is_on_list, which_boss, get_new_content, delete_user_from_list
+from messageFormater import delete_command_prefix, format_msg, \
+    check_user_is_on_list, which_boss, get_new_content, split_content, delete_user_from_list, is_special_command, call_special
 from mention import make_mention, Mention
 from emojiChecker import emoji_counter, is_in_emoji_list
-from ErrorMessages import error_message, user_exist_message
+from InfoMessages import error_message, user_exist_message, bad_format_message
+from messageValidator import is_validate
 
 
 async def add_emoji_to_msg(message_id):
@@ -42,11 +43,16 @@ class MyClient(discord.Client):
         if message.channel.id == CHANNEL_ID:
             if message.content.startswith(START_COMMAND_PREFIX):
                 command = delete_command_prefix(message.content)
-                split_msg = split_content(command, '\\s+')
-                if len(split_msg) == COMMAND_LENGTH:
-
-                    # Send to channel
-                    context = format_msg(split_msg)
+                if is_special_command(command):
+                    context = make_mention(message.author.id, Mention.USER)+"\n"
+                    context += call_special(command)
+                    channel = self.get_channel(CHANNEL_BOT_ANSWER)
+                    await channel.send(context)
+                    sleep(0.2)
+                elif is_validate(command):
+                    split_msg = split_content(command, '\\s+')
+                        # Send to channel
+                    context = format_msg(split_msg, message.author.id)
                     if context.startswith(NOT_FOUND_PREFIX):
                         channel = self.get_channel(CHANNEL_BOT_ANSWER)
                         await channel.send(context)
@@ -58,8 +64,7 @@ class MyClient(discord.Client):
                         await add_emoji_to_msg(message_id)
                 else:
                     channel = self.get_channel(CHANNEL_BOT_ANSWER)
-                    await channel.send("Bad message:\nFormat should be: !bossName DD:MM:YYYY-HH:MM\nYour format: "
-                                       + message.content)
+                    await channel.send(bad_format_message(message.author.id, message.content))
                 await message.delete()
 
     async def on_reaction_add(self, reaction, user):

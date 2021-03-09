@@ -10,6 +10,12 @@ COMMAND_LENGTH = 2
 JOIN_BOSS_TIMEOUT = 0
 
 
+AVAILABLE_COMMAND = [
+    "help",
+    "bossList"
+]
+
+
 # NAME(DON`T CHANGE), <:NAME:ID>
 EMOJI_MAP = {
     "emoji_one": "<:Tsundere:818254046934204477>",
@@ -30,3 +36,5 @@ BOSSES_MAP = {
     "bad":    "Not found :("
 
 }
+
+
