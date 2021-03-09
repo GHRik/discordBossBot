@@ -1,170 +1,18 @@
 import asyncio
-from enum import Enum
 from time import sleep
 import discord
-import re
 
-BOT_NAME = "DiscordBot"
-START_COMMAND_PREFIX = "!"
-CHANNEL_ID = 817389242874855486
-CHANNEL_BOT_ANSWER = 817490081577173052
-NOT_FOUND_PREFIX = "Boss not found!"
-
-#COMMAND EXAMPLE !bossName DD.MM.YYYY-HH:MM
-COMMAND_LENGTH = 2
-
-JOIN_BOSS_TIMEOUT = 0
+from globals import *
+from messageFormater import delete_command_prefix, split_content, format_msg, \
+    check_user_is_on_list, which_boss, get_new_content, delete_user_from_list
+from mention import make_mention, Mention
+from emojiChecker import emoji_counter, is_in_emoji_list
+from ErrorMessages import error_message, user_exist_message
 
 
-#NAME(DONT CHANGE), <:NAME:ID>
-EMOJI_MAP = {
-    "emoji_one": "<:Tsundere:818254046934204477>",
-    "emoji_two": "<:Nani:818254046669439008>",
-    "emoji_three": "<:Care:818254046929616926>",
-    "emoji_four": "<:Shy:818254047014420521>",
-    "NOT_FOUND":    "bad"
-}
-
-#NAME , ID
-MENTION_MAP = {
-    "boss1": 817410873882443807,
-    "bad":    "Not found :("
-}
-
-#NAME, AMOUNT_OF_PLEOPLE_TO_GO
-BOSSES_MAP = {
-    "boss1":  2,
-    "bad":    "Not found :("
-
-}
-
-def deleteCommandPrexif( command ):
-    com = splitContent( command, '\\s+')
-    firstWord = com[0]
-    firstWordWithoutPrefix = re.sub(START_COMMAND_PREFIX, '', firstWord)
-    com[0] = firstWordWithoutPrefix
-    myCommand = ""
-    for ele in com:
-        myCommand += ele+" "
-    return myCommand
-
-
-def splitContent( content, delimRegex ):
-    splited = re.split(delimRegex, content)
-    while "" in splited:
-        del splited[splited.index("")]
-    return splited
-
-def createNumberOfMembers( members ):
-    numbers = splitContent(members, ',')
-    amount = 0
-    for elem in numbers:
-        amount += int(elem)
-
-    return amount
-
-def makeMention( mentionID, option):
-
-    switcher = {
-        Mention.USER: "<@"+str(mentionID)+">",           #<@USER_ID>
-        Mention.USER_NICKNAME: "<@!"+str(mentionID)+">", #<@!USER_ID>
-        Mention.CHANNEL: "<#"+str(mentionID)+">",        #<#CHANNEL_ID>
-        Mention.ROLE: "<@&"+str(mentionID)+">",          #<@&ROLE_ID>
-    }
-    return switcher.get(option)
-
-def decodeMakeMention( encodedMentionID ):
-    return re.sub('[^A-Za-z0-9]+', '', encodedMentionID)
-
-
-def formatMsg(self, content):
-    contex = ""
-    if content[0].lower() in MENTION_MAP and content[0].lower() in BOSSES_MAP:
-        mention = makeMention(MENTION_MAP[content[0].lower()],Mention.ROLE)
-        amoutOfMembers = BOSSES_MAP[content[0].lower()]
-        contex += mention
-        contex += " "+content[1]
-
-        contex += "\n"
-        for i in range(amoutOfMembers):
-            contex += ""+str(i+1)+":"+"\n"
-        return contex
-    else:
-        contex = NOT_FOUND_PREFIX+"\nContent:\n"+content[0]+"\n"+"Check bot configuration"
-        return contex
-
-def whichBoss( content ):
-    bossIdEncoded = content.split(' ', 1)[0]
-    bossId = decodeMakeMention(bossIdEncoded)
-    for key in MENTION_MAP:
-        if MENTION_MAP[key] == int(bossId):
-            return key
-    return MENTION_MAP["bad"]
-
-def checkUserIsOnList( content, userId ):
-    return content.find(str(userId))
-
-def errorMassage( reaction, user ):
-    return ("Przekroczona liczba\n" +
-     "Na Bossa: " + splitContent(reaction.message.content, " ")[
-         0] + "\n"
-     + makeMention(user.id,
-                   Mention.USER) + " Nie udało Ci się zapisać")
-def userExistMessage( content, user ):
-    return ("Użytkownik:"+makeMention(user.id,Mention.USER)+"\n"+"Jest już zapisany na: "+splitContent(content.message.content,"\n")[0])
-
-def deleteFirstLineFromContent( content ):
-    sansfirstline = '\n'.join(content.split('\n')[1:])
-    return sansfirstline
-
-def getFirstFreeSlot( listContent ):
-    listOfContent = splitContent(listContent,"\n")
-    for i in range(len(listOfContent)):
-        listOfContent[i] += "\n"
-        regex = r"\d+:(.*)\n"
-        result = re.search(regex, listOfContent[i])
-        if result.group(1) == "":
-            return listOfContent[i][0]
-    return -1
-
-
-def getNewContent(user_id,  reaction):
-    mention = makeMention(user_id,Mention.USER)
-    myContentWithoutFirstLine = deleteFirstLineFromContent(reaction.message.content)
-    freeSlot = getFirstFreeSlot( myContentWithoutFirstLine )
-    if freeSlot == -1:
-        return reaction.message.content
-    else:
-        content = splitContent(reaction.message.content, "\n")
-        content[int(freeSlot)] = freeSlot+":"+mention+" "+str(reaction.emoji)
-        contex = ""
-        for i in range(len(content)):
-            contex += content[i]+"\n"
-        return contex
-
-
-def deleteUserFromList(payload,  content):
-    mention = makeMention(payload.user_id,Mention.USER)
-    stringToFind = mention+" "+ str(payload.emoji)
-    return content.replace(stringToFind, '')
-
-def isInEmojiList( emoji ):
+async def add_emoji_to_msg(message_id):
     for key in EMOJI_MAP:
-        if str(emoji) == EMOJI_MAP[key]:
-            return True
-    return False
-
-def emojiCounter( emojiList ):
-    counter = 0
-    for i in range(len(emojiList.message.reactions)):
-        counter += emojiList.message.reactions[i].count
-    return counter
-
-class Mention(Enum):
-    USER = 1
-    USER_NICKNAME = 2
-    CHANNEL = 3
-    ROLE = 4
+        await message_id.add_reaction(str(EMOJI_MAP[key]))
 
 
 class MyClient(discord.Client):
@@ -174,9 +22,9 @@ class MyClient(discord.Client):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.bg_task = self.loop.create_task(self.spamEmojiPrevent())
+        self.bg_task = self.loop.create_task(self.spam_emoji_prevent())
 
-    async def spamEmojiPrevent(self):
+    async def spam_emoji_prevent(self):
         await self.wait_until_ready()
         while not self.is_closed():
             self.BLOCK_ADDING = False
@@ -193,78 +41,65 @@ class MyClient(discord.Client):
 
         if message.channel.id == CHANNEL_ID:
             if message.content.startswith(START_COMMAND_PREFIX):
-                command = deleteCommandPrexif(message.content)
-                splitedMsg = splitContent(command,'\\s+')
-                if len(splitedMsg) == COMMAND_LENGTH:
+                command = delete_command_prefix(message.content)
+                split_msg = split_content(command, '\\s+')
+                if len(split_msg) == COMMAND_LENGTH:
 
-                    #Send to channel
-                    contex = formatMsg(self, splitedMsg)
-                    if contex.startswith(NOT_FOUND_PREFIX):
+                    # Send to channel
+                    context = format_msg(split_msg)
+                    if context.startswith(NOT_FOUND_PREFIX):
                         channel = self.get_channel(CHANNEL_BOT_ANSWER)
-                        await channel.send(contex)
+                        await channel.send(context)
                         sleep(0.2)
                     else:
                         channel = self.get_channel(CHANNEL_ID)
-                        id = await channel.send(contex)
+                        message_id = await channel.send(context)
                         sleep(0.2)
-                        await id.add_reaction(EMOJI_MAP["emoji_one"])
-                        await id.add_reaction(EMOJI_MAP["emoji_two"])
-                        await id.add_reaction(EMOJI_MAP["emoji_three"])
-                        await id.add_reaction(EMOJI_MAP["emoji_four"])
+                        await add_emoji_to_msg(message_id)
                 else:
                     channel = self.get_channel(CHANNEL_BOT_ANSWER)
-                    await channel.send("Bad message:\nFormat should be: !bossName DD:MM:YYYY-HH:MM\nYour format: "+message.content)
+                    await channel.send("Bad message:\nFormat should be: !bossName DD:MM:YYYY-HH:MM\nYour format: "
+                                       + message.content)
                 await message.delete()
 
     async def on_reaction_add(self, reaction, user):
         if reaction.message.channel.id == CHANNEL_ID:
             if user.name != BOT_NAME:
-                if checkUserIsOnList(reaction.message.content, user.id) == -1:
-                    if self.BLOCK_ADDING == True:
+                if check_user_is_on_list(reaction.message.content, user.id) == -1:
+                    if self.BLOCK_ADDING:
                         await reaction.remove(user)
-                        authorOfReaction = client.get_channel(CHANNEL_BOT_ANSWER)
-                        await authorOfReaction.send("SPAM PREVENTING!!:\n"+makeMention(user.id,Mention.USER)+ "Wait a few second to add")
+                        author_of_reaction = client.get_channel(CHANNEL_BOT_ANSWER)
+                        await author_of_reaction.send("SPAM PREVENTING!!:\n"
+                                                      + make_mention(user.id, Mention.USER)
+                                                      + "Wait a few second to add")
                         return
                     self.BLOCK_ADDING = True
-                    boss = whichBoss(reaction.message.content)
-                    amountOF = int(BOSSES_MAP[boss])
-                    if isInEmojiList(reaction.emoji) == True:
-                        countOfEmoji = emojiCounter(reaction)-len(EMOJI_MAP)+1
-                        if( amountOF >= countOfEmoji ):
-                            await reaction.message.edit(content= getNewContent(user.id, reaction))
+                    boss = which_boss(reaction.message.content)
+                    amount_of = int(BOSSES_MAP[boss])
+                    if is_in_emoji_list(reaction.emoji):
+                        count_of_emoji = emoji_counter(reaction) - len(EMOJI_MAP) + 1
+                        if amount_of >= count_of_emoji:
+                            await reaction.message.edit(content=get_new_content(user.id, reaction))
                         else:
                             self.BOT_REMOVE = True
                             await reaction.remove(user)
-                            authorOfReaction = client.get_channel(CHANNEL_BOT_ANSWER)
-                            await authorOfReaction.send( errorMassage( reaction ,user ) )
+                            author_of_reaction = client.get_channel(CHANNEL_BOT_ANSWER)
+                            await author_of_reaction.send(error_message(reaction, user))
                 else:
                     self.BOT_REMOVE = True
                     await reaction.remove(user)
-                    authorOfReaction = client.get_channel(CHANNEL_BOT_ANSWER)
-                    await authorOfReaction.send(userExistMessage( reaction,user ))
-
-
+                    author_of_reaction = client.get_channel(CHANNEL_BOT_ANSWER)
+                    await author_of_reaction.send(user_exist_message(reaction, user))
 
     async def on_raw_reaction_remove(self, payload):
 
-        await self.wait_until_ready()
         channel = self.get_channel(CHANNEL_ID)
         msg = await channel.fetch_message(payload.message_id)
-        if self.BOT_REMOVE == False:
-            if  checkUserIsOnList(msg.content, payload.user_id) > -1 :
-                if str(payload.emoji) == EMOJI_MAP["emoji_one"]:
-                    await msg.edit(content= deleteUserFromList(payload, msg.content))
-                    sleep(0.2)
-                if str(payload.emoji) == EMOJI_MAP["emoji_two"]:
-                    await msg.edit(content= deleteUserFromList(payload, msg.content))
-                if str(payload.emoji) == EMOJI_MAP["emoji_three"]:
-                    await msg.edit(content= deleteUserFromList(payload, msg.content))
-                    sleep(0.2)
-                if str(payload.emoji) == EMOJI_MAP["emoji_four"]:
-                    await msg.edit(content= deleteUserFromList(payload, msg.content))
-                    sleep(0.2)
+        if not self.BOT_REMOVE:
+            if check_user_is_on_list(msg.content, payload.user_id) > -1:
+                if is_in_emoji_list(str(payload.emoji)):
+                    await msg.edit(content=delete_user_from_list(payload, msg.content))
         self.BOT_REMOVE = False
-
 
 
 client = MyClient()
