@@ -21,7 +21,8 @@ def user_exist_message(content, user):
 def bad_format_message(user_id, content):
     today = create_today_date()
     return str(make_mention(user_id, Mention.USER)+" Input bad format:\n"
-               "```Format should be: !COMMAND DD:MM:YYYY-HH:MM > "+str(today)+"```\n```Your format: " + content+"```"+"\n\nCall: ```!help``` for more info\n")
+               "```Format should be: !COMMAND DD:MM:YYYY-HH:MM > "+str(today)+"```\n```Your format: " + content + "```"
+               + "\n\nCall: ```!help``` for more info\n")
 
 
 def print_help(command_dict):
@@ -117,7 +118,8 @@ def print_active_list(message_list):
         result += "No active event\n\n If you want to know how to create event: ```!help```"
     return result
 
-def sort_message_by_date( message_list ):
+
+def sort_message_by_date(message_list):
     temp_dict = {}
     for mes in message_list:
         split = split_content(mes.content, "\n")
