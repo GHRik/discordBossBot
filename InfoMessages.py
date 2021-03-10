@@ -21,7 +21,7 @@ def user_exist_message(content, user):
 def bad_format_message(user_id, content):
     today = create_today_date()
     return str(make_mention(user_id, Mention.USER)+" Input bad format:\n"
-               "```Format should be: !COMMAND DD:MM:YYYY-HH:MM > "+str(today)+"```\n```Your format: " + content+"```")
+               "```Format should be: !COMMAND DD:MM:YYYY-HH:MM > "+str(today)+"```\n```Your format: " + content+"```"+"\n\nCall: ```!help``` for more info\n")
 
 
 def print_help(command_dict):
@@ -52,6 +52,88 @@ def print_boss_list(bosses_dict):
     return output
 
 
+def print_today_list(message_list):
+    today = []
+    today_date = create_today_date()
+
+    for mes in message_list:
+        split = split_content(mes.content, "\n")
+        split = split_content(split[0], "\\s+")
+        date = split[1]
+        format_date = FORMAT_DATATIME
+        date = datetime.strptime(date, format_date)
+        if date.date() == today_date.date():
+            today.append(mes)
+    result = "TODAY EVENTS: \n"
+    counter = 0
+    today_list = sort_message_by_date(today)
+    for mes in today_list:
+        counter += 1
+        split = split_content(mes.content, "\n")
+        result += str(counter) + ". Event " + ": " + split[0] + "\n"
+        split = split_content(split[0], "\\s+")
+        date = split[1]
+        format_date = FORMAT_DATATIME
+        date = datetime.strptime(date, format_date)
+        sec_to_min = 60.0
+        minutes_diff = (date - today_date).total_seconds() / sec_to_min
+        result += "To go: " + str(minutes_diff) + " min"
+        list_members = []
+        split = split_content(mes.content, "\n")
+        split = split[1:]
+        for member in split:
+            list_members.append(member)
+        result += "\t\tFree slots: " + get_slots(list_members) + "\n"
+    if len(today) == 0:
+        result += "No event today\n\n For list all event: ```!eventList```"
+    return result
+
+
+def print_active_list(message_list):
+    event = []
+    today_date = create_today_date()
+    for mes in message_list:
+        split = split_content(mes.content, "\n")
+        split = split_content(split[0], "\\s+")
+        date = split[1]
+        format_date = FORMAT_DATATIME
+        date = datetime.strptime(date, format_date)
+        if date.date() >= today_date.date():
+            event.append(mes)
+    result = "ACTIVE EVENTS: \n"
+    counter = 0
+    event = sort_message_by_date(event)
+    for mes in event:
+        counter += 1
+        split = split_content(mes.content, "\n")
+        result += str(counter) + ". Event " + ": " + split[0] + "\n"
+        list_members = []
+        split = split_content(mes.content, "\n")
+        split = split[1:]
+        for member in split:
+            list_members.append(member)
+        result += "\t\tFree slots: " + get_slots(list_members) + "\n"
+    if len(event) == 0:
+        result += "No active event\n\n If you want to know how to create event: ```!help```"
+    return result
+
+def sort_message_by_date( message_list ):
+    temp_dict = {}
+    for mes in message_list:
+        split = split_content(mes.content, "\n")
+        split = split_content(split[0], "\\s+")
+        date = split[1]
+        format_date = FORMAT_DATATIME
+        date = datetime.strptime(date, format_date)
+        temp_dict[mes] = date
+
+    temp_dict = sorted(temp_dict, key=temp_dict.get)
+    message_list.clear()
+    for mes in temp_dict:
+        message_list.append(mes)
+    return message_list
+
+
 def split_content(content, delimiter_regex):
     split = re.split(delimiter_regex, content)
     while "" in split:
@@ -68,3 +150,15 @@ def create_today_date():
     format_date = FORMAT_DATATIME
     today = datetime.strptime(today_date, format_date)
     return today
+
+
+def get_slots(list_content):
+    maksimum = len(list_content)
+    free = 0
+    for i in range(len(list_content)):
+        list_content[i] += "\n"
+        regex = r"\d+:(.*)\n"
+        result = re.search(regex, list_content[i])
+        if result.group(1) == "":
+            free += 1
+    return str(free)+"/"+str(maksimum)

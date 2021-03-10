@@ -43,6 +43,15 @@ class MyClient(discord.Client):
         self.bg_task = self.loop.create_task(self.spam_emoji_prevent())
         self.bg_task = self.loop.create_task(self.call_after_raid())
         self.bg_task = self.loop.create_task(self.call_members())
+        self.bg_task = self.loop.create_task(self.fetch_all_message())
+
+    async def fetch_all_message(self):
+        fetching_timer = 10
+        while not self.is_closed():
+            for i in range(len(MESSAGES)):
+                message = await client.get_channel(CHANNEL_ID).fetch_message(MESSAGES[i].id)
+                MESSAGES[i] = message
+            await asyncio.sleep(fetching_timer)
 
     async def call_members(self):
         interval = 60

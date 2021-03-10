@@ -22,7 +22,9 @@ JOIN_BOSS_TIMEOUT = 0
 # SPECIAL COMMAND TO USE
 AVAILABLE_COMMAND = [
     "help",
-    "bossList"
+    "bossList",
+    "today",
+    "eventList"
 ]
 
 # YOUR CUSTOM EMOJI
@@ -44,7 +46,7 @@ MENTION_MAP = {
 # NAME SHOULD BE SAME AS ROLE ON SERVER.
 # NAME, AMOUNT_OF_PEOPLE_TO_GO
 BOSSES_MAP = {
-    "boss1":  2,
+    "boss1":  99,
     "bad":    "Not found :("
 
 }

@@ -1,7 +1,8 @@
 import re
 from globals import START_COMMAND_PREFIX, BOSSES_MAP, MENTION_MAP, NOT_FOUND_PREFIX, AVAILABLE_COMMAND
 from mention import make_mention, decode_mention, Mention
-from InfoMessages import print_help, print_boss_list
+from InfoMessages import print_help, print_boss_list, print_today_list, print_active_list
+from messageHolding import MESSAGES
 
 
 def format_msg(content, user_id):
@@ -125,4 +126,8 @@ def call_special(command):
         result += print_boss_list(BOSSES_MAP)
     if command == AVAILABLE_COMMAND[1].lower():
         result += print_boss_list(BOSSES_MAP)
+    if command == AVAILABLE_COMMAND[2].lower():
+        result += print_today_list(MESSAGES)
+    if command == AVAILABLE_COMMAND[3].lower():
+        result += print_active_list(MESSAGES)
     return result
