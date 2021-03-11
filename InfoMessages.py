@@ -78,7 +78,10 @@ def print_today_list(message_list):
         date = datetime.strptime(date, format_date)
         sec_to_min = 60.0
         minutes_diff = (date - today_date).total_seconds() / sec_to_min
-        result += "To go: " + str(minutes_diff) + " min"
+        if minutes_diff > 0:
+            result += "To go: " + str(minutes_diff) + " min"
+        else:
+            result += "Was started: " + str(minutes_diff) + "min ago"
         list_members = []
         split = split_content(mes.content, "\n")
         split = split[1:]

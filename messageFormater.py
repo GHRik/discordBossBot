@@ -43,7 +43,11 @@ def get_new_content(user_id, reaction):
         return context
 
 
-def which_boss(content):
+def which_boss_from_content(content):
+    return delete_command_prefix(content.split(' ', 1)[0])[:-1]
+
+
+def which_boss_from_mention(content):
     boss_id_encoded = content.split(' ', 1)[0]
     boss_id = decode_mention(boss_id_encoded)
     for key in MENTION_MAP:
