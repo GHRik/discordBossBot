@@ -24,12 +24,16 @@ async def minion():
     for mes in MESSAGES:
         split = split_content(mes.content, "\n")
         date = split_content(split[0], "\\s+")
+        list_member = ""
+        for elem in split[1:]:
+            list_member += elem + " "
+        member_count = list_member.count("@")
         date = date[1]
         format_date = FORMAT_DATATIME
         msg_date = datetime.strptime(date, format_date)
         sec_to_min = 60.0
         minutes_diff = (msg_date - actual_time).total_seconds() / sec_to_min
-        if minutes_diff < INTERVAL_TIME:
+        if INTERVAL_TIME >= minutes_diff > MINIMUM_INTERVAL_TIME and member_count > MINIMUM_MEMBER_TO_CALL:
             MESSAGES_TO_CALL.append(mes)
 
 
@@ -42,7 +46,7 @@ class MyClient(discord.Client):
         super().__init__(*args, **kwargs)
         print("\nConstructor is called:\n")
         self.bg_task = self.loop.create_task(self.spam_emoji_prevent())
-        print("Emoji preventer: Online")
+        print("Emoji spam preventer: Online")
         self.bg_task = self.loop.create_task(self.call_after_raid())
         print("Raid checker: Online")
         self.bg_task = self.loop.create_task(self.call_members())
@@ -95,6 +99,7 @@ class MyClient(discord.Client):
                     boss = date[0]
                     author = date[3]
                     date = date[1]
+
                     content = "Guys!\n"+str(list_of_members)+"\n"+str(INTERVAL_TIME)+"min to raid on:\n"+boss
                     content += "\nevent on: "+str(date)+" created by: "+author
                     content += "\n\n!!! Good luck !!!\n\n"
@@ -127,7 +132,7 @@ class MyClient(discord.Client):
                 command = delete_command_prefix(message.content)
                 if is_special_command(command):
                     context = make_mention(message.author.id, Mention.USER)+"\n"
-                    context += call_special(command)
+                    context += call_special(command, message.author.id)
                     channel = self.get_channel(CHANNEL_BOT_ANSWER)
                     await channel.send(context)
                     sleep(0.2)

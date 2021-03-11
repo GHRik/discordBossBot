@@ -122,6 +122,32 @@ def print_active_list(message_list):
     return result
 
 
+def print_user_active_event(user_id, message_list):
+    event = []
+    today_date = create_today_date()
+    for mes in message_list:
+        split = split_content(mes.content, "\n")
+        members = ""
+        for member in split[1:]:
+            members += member
+        split = split_content(split[0], "\\s+")
+        date = split[1]
+        format_date = FORMAT_DATATIME
+        date = datetime.strptime(date, format_date)
+        if date.date() >= today_date.date() and members.count(str(user_id)) > 0:
+            event.append(mes)
+    result = "ONLY YOURS ACTIVE EVENTS: \n"
+    counter = 0
+    event = sort_message_by_date(event)
+    for mes in event:
+        counter += 1
+        split = split_content(mes.content, "\n")
+        result += str(counter) + ". Event " + ": " + split[0] + "\n"
+    if len(event) == 0:
+        result += "No active event\n\n If you want to know how to create event: ```!help```"
+    return result
+
+
 def sort_message_by_date(message_list):
     temp_dict = {}
     for mes in message_list:

@@ -1,7 +1,7 @@
 import re
 from globals import START_COMMAND_PREFIX, BOSSES_MAP, MENTION_MAP, NOT_FOUND_PREFIX, AVAILABLE_COMMAND
 from mention import make_mention, decode_mention, Mention
-from InfoMessages import print_help, print_boss_list, print_today_list, print_active_list
+from InfoMessages import print_help, print_boss_list, print_today_list, print_active_list, print_user_active_event
 from messageHolding import MESSAGES
 
 
@@ -120,7 +120,7 @@ def is_special_command(command):
     return False
 
 
-def call_special(command):
+def call_special(command, user_id):
     split = split_content(command, '\\s+')
     result = ""
     command = split[0]
@@ -134,4 +134,6 @@ def call_special(command):
         result += print_today_list(MESSAGES)
     if command == AVAILABLE_COMMAND[3].lower():
         result += print_active_list(MESSAGES)
+    if command == AVAILABLE_COMMAND[4].lower():
+        result += print_user_active_event(user_id, MESSAGES)
     return result
