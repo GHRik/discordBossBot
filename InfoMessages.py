@@ -81,7 +81,7 @@ def print_today_list(message_list):
         if minutes_diff > 0:
             result += "To go: " + str(minutes_diff) + " min"
         else:
-            result += "Was started: " + str(minutes_diff) + "min ago"
+            result += "Was started: " + str(abs(minutes_diff)) + "min ago"
         list_members = []
         split = split_content(mes.content, "\n")
         split = split[1:]
